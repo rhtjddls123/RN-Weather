@@ -9,9 +9,19 @@ import {
 import styled from "styled-components/native";
 import * as Location from "expo-location";
 import { Daily } from "./type";
+import { Fontisto } from "@expo/vector-icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const WEATHER_API = process.env.EXPO_PUBLIC_WEATHER_KEY;
+const icons: Record<string, keyof typeof Fontisto.glyphMap> = {
+  Clouds: "cloudy",
+  Clear: "day-sunny",
+  Atmosphere: "cloudy-gusts",
+  Snow: "snow",
+  Rain: "rains",
+  Drizzle: "rain",
+  Thunderstorm: "lightning",
+};
 
 export default function App() {
   const [city, setCity] = useState<String | undefined>("Loading...");
@@ -34,7 +44,6 @@ export default function App() {
       `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${WEATHER_API}&units=metric`
     );
     const json = await res.json();
-    console.log(json.daily);
     setDays(json.daily);
   };
   useEffect(() => {
@@ -57,10 +66,18 @@ export default function App() {
         ) : (
           days.map((v) => (
             <Day SCREEN_WIDTH={SCREEN_WIDTH} key={v.dew_point}>
-              <Text className=" text-[178px] mt-[50]">
-                {parseFloat(v.temp.day.toString()).toFixed(1)}
-              </Text>
-              <Text className=" text-[60px] -mt-[30]">{v.weather[0].main}</Text>
+              <View className=" flex flex-row items-center justify-between w-full">
+                <Text className=" text-[140px] mt-[50]">
+                  {parseFloat(v.temp.day.toString()).toFixed(1)}
+                </Text>
+                <Fontisto
+                  name={icons[v.weather[0].main]}
+                  size={68}
+                  color="black"
+                  className=" "
+                />
+              </View>
+              <Text className=" text-[60px]">{v.weather[0].main}</Text>
               <Text className=" text-[20px]">{v.weather[0].description}</Text>
             </Day>
           ))
@@ -75,5 +92,6 @@ type DayStyle = {
 };
 const Day = styled.View<DayStyle>`
   width: ${(props) => `${props.SCREEN_WIDTH}px`};
-  align-items: center;
+  padding-left: 24px;
+  padding-right: 24px;
 `;
