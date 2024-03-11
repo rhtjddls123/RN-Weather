@@ -50,7 +50,7 @@ export default function App() {
     getWeather();
   }, []);
   return (
-    <View className=" flex-1 bg-red-500">
+    <View className=" flex-1 bg-blue-400">
       <View className=" flex-1 items-center justify-center">
         <Text className=" font-medium text-7xl">{city?.toString()}</Text>
       </View>
