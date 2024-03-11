@@ -1,13 +1,22 @@
 import { SetStateAction, useEffect, useState } from "react";
-import { Text, View, ScrollView, Dimensions } from "react-native";
+import {
+  Text,
+  View,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 import styled from "styled-components/native";
 import * as Location from "expo-location";
+import { Daily } from "./type";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const WEATHER_API = process.env.EXPO_PUBLIC_WEATHER_KEY;
 
 export default function App() {
   const [city, setCity] = useState<String | undefined>("Loading...");
   const [ok, setOk] = useState(true);
+  const [days, setDays] = useState<Daily[]>([]);
   const getWeather = async () => {
     const { granted } = await Location.requestForegroundPermissionsAsync();
     if (!granted) {
@@ -21,6 +30,12 @@ export default function App() {
       { useGoogleMaps: false }
     );
     setCity(location[0].city?.toString());
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${WEATHER_API}&units=metric`
+    );
+    const json = await res.json();
+    console.log(json.daily);
+    setDays(json.daily);
   };
   useEffect(() => {
     getWeather();
@@ -35,18 +50,21 @@ export default function App() {
         horizontal
         showsHorizontalScrollIndicator={false}
       >
-        <Day SCREEN_WIDTH={SCREEN_WIDTH}>
-          <Text className=" text-[178px] mt-[50]">27</Text>
-          <Text className=" text-[60px] -mt-[30]">Sunny</Text>
-        </Day>
-        <Day SCREEN_WIDTH={SCREEN_WIDTH}>
-          <Text className=" text-[178px] mt-[50]">27</Text>
-          <Text className=" text-[60px] -mt-[30]">Sunny</Text>
-        </Day>
-        <Day SCREEN_WIDTH={SCREEN_WIDTH}>
-          <Text className=" text-[178px] mt-[50]">27</Text>
-          <Text className=" text-[60px] -mt-[30]">Sunny</Text>
-        </Day>
+        {days.length === 0 ? (
+          <Day SCREEN_WIDTH={SCREEN_WIDTH}>
+            <ActivityIndicator color="white" size={"large"}></ActivityIndicator>
+          </Day>
+        ) : (
+          days.map((v) => (
+            <Day SCREEN_WIDTH={SCREEN_WIDTH} key={v.dew_point}>
+              <Text className=" text-[178px] mt-[50]">
+                {parseFloat(v.temp.day.toString()).toFixed(1)}
+              </Text>
+              <Text className=" text-[60px] -mt-[30]">{v.weather[0].main}</Text>
+              <Text className=" text-[20px]">{v.weather[0].description}</Text>
+            </Day>
+          ))
+        )}
       </ScrollView>
     </View>
   );
